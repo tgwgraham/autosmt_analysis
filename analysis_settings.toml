@@ -1,0 +1,129 @@
+###################################################
+#   data source for each experimental condition   #
+###################################################
+
+[conditions]
+
+# List each separate experimental condition as 'conditions' followed by a period, 
+# followed by a unique condition name
+# In turn, list each experiment for that condition with a distinct experiment name.
+# Condition and experiment names will be used as names for output folders.
+# Indentation makes this easier to read but is optional.
+
+    # Optionally provide a "title" field to give a title for plotting this condition
+
+    # For each experiment, provide the following variables
+        # csv_folder - file path of folder containing SMT csv files for selected cells
+        #   It is assumed that file names will be of the form n_m.csv, where n
+        #   is the ROI index and m is the cell index within that ROI.
+        #   This 
+        # meas_folder - file path of file containing measurements for each single-cell CSV file.
+        # stim_after - (optional) FOV number after which a stimulus (e.g., drug treatment) 
+        #   was applied
+    
+    [conditions.ctrl]
+        
+        title = "Halo-BRD4 + SNAPf-3xNLS"
+        
+        # List all experiments as "experiments.expname", where expname is some 
+        # arbitrary user-defined name
+        # Below are two experiments called "exp1" and "exp2"
+        
+        [conditions.ctrl.experiments.exp1]
+        
+            # folder with selected CSV tracking files
+            # For experiments with CSVs that have been sorted by cell, this should be the folder
+            # containing sorted CSVs, not the original CSV folder
+            csv_folder = 'cell_by_cell_csvs_all1/1/'   
+        
+            # csv file containing measurements corresponding to each single-cell csv file
+            # this is the output of the function classify_and_write_csv in autosmt_utils
+            # it is produced at the same time that trajectories from each cell are sorted into 
+            # distinct files in the above csv_folder
+            measfile = 'cell_by_cell_csvs_all1/measurements.csv' 
+            
+
+    [conditions.BSCE11]
+        
+        title = "Halo-BRD4 + SNAPf-CycT1 (BSC-E11)"
+        
+        [conditions.BSCE11.experiments.exp1]
+        
+            # folder with selected CSV tracking files
+            csv_folder = 'cell_by_cell_csvs_all2/1/'   
+        
+            # folder containing single-cell measurements
+            measfile = 'cell_by_cell_csvs_all2/measurements.csv' 
+
+
+#####################
+#  PAPA parameters  #
+#####################
+
+[illumination_sequence]
+    ncycles = 5    # number of cycles of the sequence r-v-r-r-g-r
+    r = 30         # number of red frames that were recorded
+    v = 0           # number of violet frames that were recorded
+    g = 0           # number of green frames that were recorded
+    framewindow = 30    # number of frames after pulse to include in PAPA/DR trajectories
+    gfirst = false
+
+# Note: In the original PAPA illumination sequence, we recorded green and violet
+# frames as well as all of the red illumination frames between green and violet pulses.
+# However, it is more efficient in terms of data storage to record only those red 
+# frames just before and just after the green and violet pulses. The above settings 
+# correspond to such an illumination sequence.
+
+
+#############################################
+#  parameters for state array SPT analysis  #
+#############################################
+
+[saspt]
+focal_depth = 0.7       # microscope focal depth in microns
+sample_size = 1000000   # how many trajectories to use for state array analysis
+                        # (set to a very large number to use all trajectories)
+
+
+######################################
+#  parameters for particle tracking  #
+######################################
+
+# Image reading and filtering settings
+[filter]
+    start = 0 
+    method = "identity"
+    chunk_size = 100
+
+# Spot detection settings
+[detect]
+    method = "llr"  # llr = log likelihood ratio
+    k = 1.0  # width of Gaussian
+    w = 9    # window size
+    t = 18.0 # threshold (actual threshold, not rescaled arbitrarily)
+
+# Subpixel localization settings
+[localize]
+    method = 'ls_int_gaussian' # least-squares sub-pixel localization using integrated Gaussian model w/ Gaussian-distributed noise
+    window_size = 9
+    sigma = 1.0
+    ridge = 0.001
+    max_iter = 10
+    damp = 0.3
+
+# Tracking settings
+[track]
+    method = 'conservative'
+    pixel_size_um = 0.160 # for most cameras
+    frame_interval = 0.00748 # change appropriately
+    search_radius = 1 # in microns--maximum permitted between frames
+    max_blinks = 0
+    min_I0 = 0.0 # minimum PSF intensity for spot detection to start a trajectory
+    scale = 7.0  
+
+
+
+
+
+
+
