@@ -74,6 +74,9 @@ function cellpicker(snapfolder,maskfolder,range,outfile,varargin)
 % 'use_whole_roi' - If this is set to true, then it will use the entire ROI
 % as the mask. Default: false
 %
+% 'tightplots' - If this is set to true, then plots will be displayed with tight
+% spacing
+%
 % Thomas Graham, Tjian-Darzacq Group, UC Berkeley
 % 20230526
 
@@ -88,6 +91,7 @@ addOptional(p,'scale2',[]);
 addOptional(p,'scale3',[]);
 addOptional(p,'placeholderim',magic(256)/65536);
 addOptional(p,'use_whole_roi',false);
+addOptional(p,'tightplots',false);
 parse(p,varargin{:});
 
 gridsize = p.Results.gridsize;
@@ -100,6 +104,7 @@ scale2 = p.Results.scale2;
 scale3 = p.Results.scale3;
 placeholderim = p.Results.placeholderim;
 use_whole_roi = p.Results.use_whole_roi;
+tightplots = p.Results.tightplots;
 
 rois = dlmread(roifile);
 
@@ -153,6 +158,7 @@ f = figure;
 nrows = gridsize(1);
 ncols = gridsize(2);
 
+% nmontages = ceil((1+range(2)-range(1))/(nrows*ncols));
 nmontages = ceil((1+range(2)-range(1))/(nrows*ncols));
 n = range(1);
 disp(range(1))
@@ -278,6 +284,25 @@ while ~quitnow
             end
                 
             set(get(gca,'Toolbar'),'Visible','off')
+            
+            if tightplots
+                
+                hSpacing = 0.01;  % Horizontal spacing
+                vSpacing = 0.05;  % Vertical spacing
+                
+                subplotWidth = (1 - (ncols + 1) * hSpacing) / ncols;
+                subplotHeight = (1 - (nrows + 1) * vSpacing) / nrows;
+                
+                [currcol,currrow] = ind2sub([ncols,nrows],j-n+1);
+                left = (currcol - 1) * (subplotWidth + hSpacing) + hSpacing;
+                bottom = 1 - (currrow * (subplotHeight + vSpacing));
+                
+%                 width = 1/2 - hSpacing;
+%                 height = 1/2 - vSpacing;
+
+                set(gca,'Position',[left, bottom, subplotWidth, subplotHeight])
+                
+            end
             
             celloutlines{end+1} = [];
                        
@@ -445,10 +470,14 @@ while ~quitnow
             userinput = inputdlg('Enter movie number:', 'Movie number', [1 50]);
             userinput = str2double(userinput{1});
             if ~isnan(userinput)
-                m = floor(userinput/(nrows*ncols))+1;
-                n = (m-1)*nrows*ncols + 1;
-                save(outfile,'classification','range','masks','categories'); 
-                firstdraw = 1;
+                if (floor(userinput/(nrows*ncols))+1 >nmontages) | (floor(userinput/(nrows*ncols))+1 < 1)
+                    msgbox('FOV number out of range.')
+                else
+                    m = floor(userinput/(nrows*ncols))+1;
+                    n = (m-1)*nrows*ncols + 1;
+                    save(outfile,'classification','range','masks','categories'); 
+                    firstdraw = 1;
+                end
             else
                 disp('Please enter an integer.')
             end
